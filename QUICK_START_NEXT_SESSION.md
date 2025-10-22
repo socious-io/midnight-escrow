@@ -7,7 +7,7 @@
 
 ## Just Run This:
 ```bash
-cd /home/jeyem/Socious/simple-counter-test
+cd /home/jeyem/Socious/midnight-escrow
 npm run deploy
 ```
 

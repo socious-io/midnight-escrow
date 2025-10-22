@@ -238,7 +238,7 @@ const colorHex = Buffer.from(output.coinInfo.color).toString('hex');  // WRONG
 
 2. **Run deployment:**
    ```bash
-   cd /home/jeyem/Socious/simple-counter-test
+   cd /home/jeyem/Socious/midnight-escrow
    npm run deploy
    ```
 
