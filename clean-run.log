@@ -1,0 +1,27 @@
+
+> simple-counter-test@1.0.0 deploy
+> tsx deploy.ts
+
+🚀 Escrow Contract Deployment & Testing
+
+🔨 Building wallet...
+  ✅ Wallet: mn_shield-addr_test10p5tlytz2ec3x9ds4f8vqpprxg5v6apklt67zjht20c2jfkn9d9sxqzwaphvq928mqcupnt37vhhzqxak3fp9scrhypu3yq4z5403lsu6vp4w9es
+  Balance: 999601918 tDUST
+🔧 Creating providers...
+✅ Providers ready
+  Loaded 0 tracked coin(s)
+📍 Joining contract: 020089c22e49f61e356db4fdf8e37480ba35a569296b0de491f91c970d16dc8b1cbc
+  ✅ Joined in 1.09s
+
+📊 Contract State:
+  Last escrow ID: 3
+  Instance counter: 1
+
+🧪 Testing CREATE escrow...
+
+  ⚠️  No small coins found, splitting...
+    Sending 10000 to self to create smaller coins
+
+❌ Error: TypeError: wallet.transfer is not a function
+    at splitCoinsIfNeeded (/home/jeyem/Socious/simple-counter-test/deploy.ts:105:16)
+    at async main (/home/jeyem/Socious/simple-counter-test/deploy.ts:445:20)

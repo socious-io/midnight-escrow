@@ -1,0 +1,11 @@
+{
+  "name": "counter-contract",
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "compact": "compactc src/escrow.compact src/managed/escrow"
+  },
+  "dependencies": {
+    "@midnight-ntwrk/compact-runtime": "^0.8.1"
+  }
+}

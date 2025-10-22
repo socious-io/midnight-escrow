@@ -1,0 +1,5 @@
+npm error Missing script: "deploy"
+npm error
+npm error To see a list of scripts, run:
+npm error   npm run
+npm error A complete log of this run can be found in: /home/jeyem/.npm/_logs/2025-10-21T11_11_27_470Z-debug-0.log

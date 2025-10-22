@@ -1,0 +1,41 @@
+
+> simple-counter-test@1.0.0 deploy
+> tsx deploy.ts
+
+🚀 Escrow Contract Deploy
+
+📍 Using existing contract: 020042659fe4c114e856336ef9a070209377a5a93c701fe3919edec93d30724ab312
+
+[1/5] Building wallet...
+✅ Wallet: mn_shield-addr_test10p5tlytz2ec3x9ds4f8vqpprxg5v6apklt67zjht20c2jfkn9d9sxqzwaphvq928mqcupnt37vhhzqxak3fp9scrhypu3yq4z5403lsu6vp4w9es
+   Balance: 1969827101 tDUST
+
+[2/5] Creating providers...
+✅ Providers ready
+
+[3/5] Skipping deployment, using existing contract
+
+[4/5] Testing join (to verify indexer works)...
+✅ JOIN worked in 1.09s
+
+[5/5] Initial contract state:
+   Last escrow ID: 0
+   Instance counter: 1
+
+[6/6] Creating escrow with 10 tDUST...
+   Contributor: mn_shield-addr_test1x08854vlcnjk9wtt95ejz5wk2sd8s6w8lqu0jlsryak9j58qd8qsxqrzffwamyq2z4xuj95snfj06g0p8gpggq0jc0raxq8dpg4f2y9ucqvkdw46
+   Parsed coin public key bytes length: 32
+   Creating escrow with:
+   - Amount: 10000000 (10 tDUST)
+   - Contributor bytes: 32
+   - Fee: 0
+   ⏳ Proof generation may take 5-10 minutes...
+   - Generated coin with random nonce
+❌ Error: CompactError: type error: create argument 5 (argument 6 as invoked from Typescript) at escrow.compact line 22 char 1; expected value of type struct CoinInfo<nonce: Bytes<32>, color: Bytes<32>, value: Uint<0..340282366920938463463374607431768211455>> but received { nonce: Uint8Array [Uint8Array] { 0: 137, 1: 21, 2: 221, 3: 158, 4: 93, 5: 110, 6: 150, 7: 126, 8: 92, 9: 170, 10: 42, 11: 189, 12: 122, 13: 42, 14: 2, 15: 94, 16: 9, 17: 188, 18: 239, 19: 87, 20: 14, 21: 16, 22: 69, 23: 138, 24: 95, 25: 211, 26: 73, 27: 206, 28: 56, 29: 34, 30: 64, 31: 116 }, color: Uint8Array [Uint8Array] { 0: 2, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0, 8: 0, 9: 0, 10: 0, 11: 0, 12: 0, 13: 0, 14: 0, 15: 0, 16: 0, 17: 0, 18: 0, 19: 0, 20: 0, 21: 0, 22: 0, 23: 0, 24: 0, 25: 0, 26: 0, 27: 0, 28: 0, 29: 0, 30: 0, 31: 0, 32: 0, 33: 0 }, value: 10000000n }
+    at Object.type_error (/home/jeyem/Socious/simple-counter-test/node_modules/@midnight-ntwrk/compact-runtime/src/runtime.ts:1129:9)
+    at create (/home/jeyem/Socious/simple-counter-test/contract/src/escrow.compact:27:19)
+    at call (/home/jeyem/Socious/simple-counter-test/node_modules/@midnight-ntwrk/midnight-js-contracts/src/call.ts:215:42)
+    at createUnprovenCallTxFromInitialStates (/home/jeyem/Socious/simple-counter-test/node_modules/@midnight-ntwrk/midnight-js-contracts/src/unproven-call-tx.ts:78:22)
+    at createUnprovenCallTx (/home/jeyem/Socious/simple-counter-test/node_modules/@midnight-ntwrk/midnight-js-contracts/src/unproven-call-tx.ts:248:12)
+    at async submitCallTx (/home/jeyem/Socious/simple-counter-test/node_modules/@midnight-ntwrk/midnight-js-contracts/src/submit-call-tx.ts:58:30)
+    at async <anonymous> (/home/jeyem/Socious/simple-counter-test/deploy.ts:244:22)

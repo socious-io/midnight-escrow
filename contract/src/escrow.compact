@@ -1,0 +1,59 @@
+pragma language_version >= 0.16 && <= 0.17;
+
+import CompactStandardLibrary;
+
+enum ESCROW_STATE { active, released, refunded }
+
+struct Escrow {
+    contributor: ZswapCoinPublicKey,
+    state: ESCROW_STATE,
+    value: Uint<128>,
+}
+
+export ledger last_escrow_id: Uint<32>;
+export ledger escrows: Map<Uint<32>, Escrow>;
+
+constructor() {
+    last_escrow_id = 0;
+}
+
+export circuit create(
+    contributor: ZswapCoinPublicKey,
+    coin: CoinInfo
+): Uint<32> {
+    // Receive the coin into the contract
+    receive(disclose(coin));
+
+    last_escrow_id = (last_escrow_id + 1) as Uint<32>;
+    escrows.insert(
+        disclose(last_escrow_id),
+        Escrow{
+            contributor: disclose(contributor),
+            state: ESCROW_STATE.active,
+            value: disclose(coin.value),
+        }
+    );
+    return last_escrow_id;
+}
+
+export circuit release(
+    id: Uint<32>,
+    coin: QualifiedCoinInfo
+): [] {
+    const e = escrows.lookup(disclose(id));
+    assert(e.state == ESCROW_STATE.active, "Escrow not active");
+    
+    // Send the coin to the contributor
+    send(
+        disclose(coin),
+        left<ZswapCoinPublicKey, ContractAddress>(e.contributor),
+        disclose(e.value)
+    );
+    
+    const updated = Escrow {
+        contributor: e.contributor,
+        state: ESCROW_STATE.released,
+        value: e.value,
+    };
+    escrows.insert(disclose(id), updated);
+}

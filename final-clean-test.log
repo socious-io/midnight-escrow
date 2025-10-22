@@ -1,0 +1,18 @@
+
+> simple-counter-test@1.0.0 deploy
+> tsx deploy.ts
+
+🚀 Escrow Contract Deployment & Testing
+
+🔨 Building wallet...
+  ✅ Wallet: mn_shield-addr_test1dgmkh2xlpr4emd6fxk59x8sgz58hstkt4wyy3djz42986p8cyh3qxqqryh4ahn43253dckeu63cr0x2e02xkqxvt8yy0v2d32kux42ngc5fh83k2
+  Balance: 997884040 tDUST
+🔧 Creating providers...
+✅ Providers ready
+📝 Deploying new contract...
+  ✅ Deployed in 83.89s
+  Address: 0200c8f77bd3c92ccd18b2831b8a703175ace01f14d0a8e912fb1e2ee370b33b4505
+
+✅ Deployment complete!
+🔄 Restart to test contract (npm run deploy)
+
