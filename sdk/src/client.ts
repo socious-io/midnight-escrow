@@ -9,6 +9,9 @@ import { Transaction as ZswapTransaction } from '@midnight-ntwrk/zswap';
 import { createBalancedTx, ZKConfigProvider } from '@midnight-ntwrk/midnight-js-types';
 import { MidnightBech32m, ShieldedAddress } from '@midnight-ntwrk/wallet-sdk-address-format';
 import * as Rx from 'rxjs';
+// Import contract and witnesses statically
+import { Contract as EscrowContract, ledger as escrowLedger } from '../../contract/src/managed/escrow/contract/index.cjs';
+import { witnesses } from '../../contract/src/witnesses.js';
 import type {
   MidnightConfig,
   WalletConfig,
@@ -148,10 +151,6 @@ export class EscrowClient {
    * Join existing contract
    */
   private async joinContract(): Promise<void> {
-    // Import contract dynamically
-    const { Contract: EscrowContract, ledger: escrowLedger } = await import(this.zkConfigPath + '/contract/index.cjs');
-    const { witnesses } = await import(this.zkConfigPath + '/../witnesses.js');
-
     const escrow = new EscrowContract(witnesses);
     this.contract = await findDeployedContract(this.providers, {
       contractAddress: this.contractAddress,
@@ -177,7 +176,6 @@ export class EscrowClient {
    */
   async getEscrowState(): Promise<EscrowState> {
     const contractState = await this.providers.publicDataProvider.queryContractState(this.contractAddress);
-    const { ledger: escrowLedger } = await import(this.zkConfigPath + '/contract/index.cjs');
     const ledgerData = escrowLedger(contractState.data);
 
     return {
