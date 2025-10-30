@@ -238,37 +238,55 @@ export class EscrowClient {
       const contributorPubKeyBytes = this.parseCoinPublicKey(params.contributorAddress);
       const contributorPubKey = { bytes: contributorPubKeyBytes };
 
-      // Get available coins from wallet
+      // Get wallet state
       const state: any = this.walletType === 'seed'
         ? await Rx.firstValueFrom(this.wallet.state())
         : await this.wallet.state();
-      const availableCoins = state.availableCoins;
 
-      // Find suitable coin
-      const nativeTokenType = nativeToken();
-      const suitableCoin = availableCoins.find((coin: any) =>
-        coin.value >= params.amount && coin.type === nativeTokenType
-      );
+      let coinInfo;
 
-      if (!suitableCoin) {
-        return {
-          escrowId: 0,
-          proofTime: 0,
-          success: false,
-          error: `No coin found with sufficient balance (need ${params.amount} tDUST)`,
+      // Check if wallet has availableCoins (seed wallet)
+      if (state.availableCoins && state.availableCoins.length > 0) {
+        // Seed wallet - manually select coin
+        const availableCoins = state.availableCoins;
+        const nativeTokenType = nativeToken();
+        const suitableCoin = availableCoins.find((coin: any) =>
+          coin.value >= params.amount && coin.type === nativeTokenType
+        );
+
+        if (!suitableCoin) {
+          return {
+            escrowId: 0,
+            proofTime: 0,
+            success: false,
+            error: `No coin found with sufficient balance (need ${params.amount} tDUST)`,
+          };
+        }
+
+        // Build CoinInfo from actual coin
+        const nonce = new Uint8Array(Buffer.from(suitableCoin.nonce, 'hex'));
+        const typeBytes = Buffer.from(suitableCoin.type, 'hex');
+        const color = new Uint8Array(typeBytes.slice(2, 34));
+
+        coinInfo = {
+          nonce,
+          color,
+          value: params.amount, // Only send escrow amount, wallet handles change
+        };
+      } else {
+        // Lace wallet - use dummy nonce, wallet will handle coin selection during balancing
+        const randomNonce = new Uint8Array(32);
+        crypto.getRandomValues(randomNonce);
+
+        // Native token color (all zeros for tDUST)
+        const color = new Uint8Array(32);
+
+        coinInfo = {
+          nonce: randomNonce,
+          color: color,
+          value: params.amount,
         };
       }
-
-      // Build CoinInfo
-      const nonce = new Uint8Array(Buffer.from(suitableCoin.nonce, 'hex'));
-      const typeBytes = Buffer.from(suitableCoin.type, 'hex');
-      const color = new Uint8Array(typeBytes.slice(2, 34));
-
-      const coinInfo = {
-        nonce,
-        color,
-        value: params.amount, // Only send escrow amount, wallet handles change
-      };
 
       // Call create circuit
       await this.contract.callTx.create(contributorPubKey, coinInfo);
