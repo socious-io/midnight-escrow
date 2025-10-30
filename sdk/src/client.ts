@@ -34,6 +34,7 @@ export class EscrowClient {
   private contractAddress: string;
   private config: MidnightConfig;
   private zkConfigPath: string;
+  private walletType: 'seed' | 'lace' | null = null;
 
   constructor(config: MidnightConfig, contractAddress: string, zkConfigPath: string) {
     this.config = config;
@@ -51,6 +52,8 @@ export class EscrowClient {
    * Connect wallet and initialize providers
    */
   async connect(walletConfig: WalletConfig): Promise<void> {
+    this.walletType = walletConfig.type;
+
     if (walletConfig.type === 'seed') {
       // Seed-based wallet (backend/CLI) - dynamically import to avoid loading in browser
       const { WalletBuilder } = await import('@midnight-ntwrk/wallet');
@@ -194,7 +197,9 @@ export class EscrowClient {
    * Get wallet balance
    */
   async getBalance(): Promise<WalletBalance> {
-    const state: any = await Rx.firstValueFrom(this.wallet.state());
+    const state: any = this.walletType === 'seed'
+      ? await Rx.firstValueFrom(this.wallet.state())
+      : await this.wallet.state();
     return {
       balance: state.balances[nativeToken()] ?? 0n,
       address: state.address,
@@ -234,7 +239,9 @@ export class EscrowClient {
       const contributorPubKey = { bytes: contributorPubKeyBytes };
 
       // Get available coins from wallet
-      const state: any = await Rx.firstValueFrom(this.wallet.state());
+      const state: any = this.walletType === 'seed'
+        ? await Rx.firstValueFrom(this.wallet.state())
+        : await this.wallet.state();
       const availableCoins = state.availableCoins;
 
       // Find suitable coin
