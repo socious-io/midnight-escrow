@@ -66,43 +66,6 @@
             "type-name": "Uint",
             "maxval": 4294967295
           }
-        },
-        {
-          "name": "coin",
-          "type": {
-            "type-name": "Struct",
-            "name": "QualifiedCoinInfo",
-            "elements": [
-              {
-                "name": "nonce",
-                "type": {
-                  "type-name": "Bytes",
-                  "length": 32
-                }
-              },
-              {
-                "name": "color",
-                "type": {
-                  "type-name": "Bytes",
-                  "length": 32
-                }
-              },
-              {
-                "name": "value",
-                "type": {
-                  "type-name": "Uint",
-                  "maxval": 340282366920938463463374607431768211455
-                }
-              },
-              {
-                "name": "mt_index",
-                "type": {
-                  "type-name": "Uint",
-                  "maxval": 18446744073709551615
-                }
-              }
-            ]
-          }
         }
       ],
       "result-type": {

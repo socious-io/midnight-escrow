@@ -7,11 +7,12 @@ enum ESCROW_STATE { active, released, refunded }
 struct Escrow {
     contributor: ZswapCoinPublicKey,
     state: ESCROW_STATE,
-    value: Uint<128>,
+    amount: Uint<128>,
 }
 
 export ledger last_escrow_id: Uint<32>;
 export ledger escrows: Map<Uint<32>, Escrow>;
+export ledger treasury: QualifiedCoinInfo;
 
 constructor() {
     last_escrow_id = 0;
@@ -24,36 +25,51 @@ export circuit create(
     // Receive the coin into the contract
     receive(disclose(coin));
 
+    // Store the coin in the treasury
+    const contractAddress = right<ZswapCoinPublicKey, ContractAddress>(kernel.self());
+    treasury.writeCoin(disclose(coin), contractAddress);
+
     last_escrow_id = (last_escrow_id + 1) as Uint<32>;
+
+    // Store escrow metadata
     escrows.insert(
         disclose(last_escrow_id),
         Escrow{
             contributor: disclose(contributor),
             state: ESCROW_STATE.active,
-            value: disclose(coin.value),
+            amount: disclose(coin.value),
         }
     );
+
     return last_escrow_id;
 }
 
 export circuit release(
-    id: Uint<32>,
-    coin: QualifiedCoinInfo
+    id: Uint<32>
 ): [] {
     const e = escrows.lookup(disclose(id));
     assert(e.state == ESCROW_STATE.active, "Escrow not active");
-    
-    // Send the coin to the contributor
-    send(
-        disclose(coin),
-        left<ZswapCoinPublicKey, ContractAddress>(e.contributor),
-        disclose(e.value)
-    );
-    
+
+    // Send from treasury to the contributor
+    const recipient = left<ZswapCoinPublicKey, ContractAddress>(e.contributor);
+    const sendResult = send(treasury, recipient, disclose(e.amount));
+    assert(sendResult.sent.value == e.amount, "Failed to send release payment");
+
+    // Handle change - if there's change, store it back in treasury
+    if (sendResult.change.is_some) {
+        const contractAddress = right<ZswapCoinPublicKey, ContractAddress>(kernel.self());
+        treasury.writeCoin(sendResult.change.value, contractAddress);
+    } else {
+        treasury.resetToDefault();
+    }
+
+    // Mark escrow as released
     const updated = Escrow {
         contributor: e.contributor,
         state: ESCROW_STATE.released,
-        value: e.value,
+        amount: e.amount,
     };
     escrows.insert(disclose(id), updated);
+
+    return [];
 }

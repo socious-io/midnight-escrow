@@ -1,0 +1,37 @@
+{
+  "name": "@socious/midnight-escrow-sdk",
+  "version": "0.1.0",
+  "description": "SDK for Midnight blockchain escrow functionality",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "watch": "tsc --watch"
+  },
+  "keywords": [
+    "midnight",
+    "escrow",
+    "blockchain",
+    "smart-contract"
+  ],
+  "author": "Socious",
+  "license": "MIT",
+  "peerDependencies": {
+    "@midnight-ntwrk/compact-runtime": "^0.8.1",
+    "@midnight-ntwrk/ledger": "^4.0.0",
+    "@midnight-ntwrk/midnight-js-contracts": "2.0.2",
+    "@midnight-ntwrk/midnight-js-http-client-proof-provider": "2.0.2",
+    "@midnight-ntwrk/midnight-js-indexer-public-data-provider": "2.0.2",
+    "@midnight-ntwrk/midnight-js-level-private-state-provider": "2.0.2",
+    "@midnight-ntwrk/midnight-js-network-id": "2.0.2",
+    "@midnight-ntwrk/midnight-js-node-zk-config-provider": "2.0.2",
+    "@midnight-ntwrk/midnight-js-types": "2.0.2",
+    "@midnight-ntwrk/wallet": "^5.0.0",
+    "@midnight-ntwrk/wallet-sdk-address-format": "^2.0.0",
+    "@midnight-ntwrk/zswap": "^4.0.0",
+    "rxjs": "^7.8.1"
+  },
+  "devDependencies": {
+    "typescript": "^5.9.3"
+  }
+}

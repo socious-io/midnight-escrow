@@ -19,6 +19,7 @@
     "@midnight-ntwrk/wallet-sdk-address-format": "^2.0.0",
     "@midnight-ntwrk/zswap": "^4.0.0",
     "dotenv": "^17.2.2",
+    "socks-proxy-agent": "^8.0.4",
     "tsx": "^4.7.0"
   },
   "devDependencies": {

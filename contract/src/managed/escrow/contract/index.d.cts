@@ -7,13 +7,7 @@ export type ImpureCircuits<T> = {
   create(context: __compactRuntime.CircuitContext<T>,
          contributor_0: { bytes: Uint8Array },
          coin_0: { nonce: Uint8Array, color: Uint8Array, value: bigint }): __compactRuntime.CircuitResults<T, bigint>;
-  release(context: __compactRuntime.CircuitContext<T>,
-          id_0: bigint,
-          coin_0: { nonce: Uint8Array,
-                    color: Uint8Array,
-                    value: bigint,
-                    mt_index: bigint
-                  }): __compactRuntime.CircuitResults<T, []>;
+  release(context: __compactRuntime.CircuitContext<T>, id_0: bigint): __compactRuntime.CircuitResults<T, []>;
 }
 
 export type PureCircuits = {
@@ -23,13 +17,7 @@ export type Circuits<T> = {
   create(context: __compactRuntime.CircuitContext<T>,
          contributor_0: { bytes: Uint8Array },
          coin_0: { nonce: Uint8Array, color: Uint8Array, value: bigint }): __compactRuntime.CircuitResults<T, bigint>;
-  release(context: __compactRuntime.CircuitContext<T>,
-          id_0: bigint,
-          coin_0: { nonce: Uint8Array,
-                    color: Uint8Array,
-                    value: bigint,
-                    mt_index: bigint
-                  }): __compactRuntime.CircuitResults<T, []>;
+  release(context: __compactRuntime.CircuitContext<T>, id_0: bigint): __compactRuntime.CircuitResults<T, []>;
 }
 
 export type Ledger = {
@@ -40,10 +28,15 @@ export type Ledger = {
     member(key_0: bigint): boolean;
     lookup(key_0: bigint): { contributor: { bytes: Uint8Array },
                              state: number,
-                             value: bigint
+                             amount: bigint
                            };
-    [Symbol.iterator](): Iterator<[bigint, { contributor: { bytes: Uint8Array }, state: number, value: bigint }]>
+    [Symbol.iterator](): Iterator<[bigint, { contributor: { bytes: Uint8Array }, state: number, amount: bigint }]>
   };
+  readonly treasury: { nonce: Uint8Array,
+                       color: Uint8Array,
+                       value: bigint,
+                       mt_index: bigint
+                     };
 }
 
 export type ContractReferenceLocations = any;
