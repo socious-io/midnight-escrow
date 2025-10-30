@@ -15,7 +15,15 @@ export interface MidnightConfig {
 }
 
 /**
- * Midnight Lace Wallet API (from window.midnight.mnLace)
+ * Midnight Lace Wallet (window.midnight.mnLace)
+ */
+export interface MidnightWallet {
+  enable: () => Promise<LaceWalletAPI>;
+  isEnabled: () => Promise<boolean>;
+}
+
+/**
+ * Midnight Lace Wallet API (from window.midnight.mnLace.enable())
  */
 export interface LaceWalletAPI {
   state: () => Promise<any>;
@@ -23,6 +31,17 @@ export interface LaceWalletAPI {
   proveTransaction: (tx: any) => Promise<any>;
   balanceAndProveTransaction: (tx: any, options?: any) => Promise<any>;
   submitTransaction: (provenTx: any) => Promise<string>;
+}
+
+/**
+ * Global window type extension for Midnight wallet
+ */
+declare global {
+  interface Window {
+    midnight?: {
+      mnLace: MidnightWallet;
+    };
+  }
 }
 
 /**

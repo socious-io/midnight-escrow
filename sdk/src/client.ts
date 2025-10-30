@@ -1,13 +1,12 @@
 import { WalletBuilder } from '@midnight-ntwrk/wallet';
 import { deployContract, findDeployedContract } from '@midnight-ntwrk/midnight-js-contracts';
 import { indexerPublicDataProvider } from '@midnight-ntwrk/midnight-js-indexer-public-data-provider';
-import { NodeZkConfigProvider } from '@midnight-ntwrk/midnight-js-node-zk-config-provider';
 import { httpClientProofProvider, DEFAULT_CONFIG } from '@midnight-ntwrk/midnight-js-http-client-proof-provider';
 import { levelPrivateStateProvider } from '@midnight-ntwrk/midnight-js-level-private-state-provider';
 import { getZswapNetworkId, getLedgerNetworkId, setNetworkId, NetworkId } from '@midnight-ntwrk/midnight-js-network-id';
 import { nativeToken, Transaction } from '@midnight-ntwrk/ledger';
 import { Transaction as ZswapTransaction } from '@midnight-ntwrk/zswap';
-import { createBalancedTx } from '@midnight-ntwrk/midnight-js-types';
+import { createBalancedTx, ZKConfigProvider } from '@midnight-ntwrk/midnight-js-types';
 import { MidnightBech32m, ShieldedAddress } from '@midnight-ntwrk/wallet-sdk-address-format';
 import * as Rx from 'rxjs';
 import type {
@@ -94,7 +93,17 @@ export class EscrowClient {
       this.config.indexerWS || this.config.indexer.replace('http', 'ws') + '/ws'
     );
 
-    const zkConfigProvider = new NodeZkConfigProvider(this.zkConfigPath);
+    // Browser-compatible ZK config provider (fetches via HTTP from RPC node)
+    const zkConfigProvider = {
+      getZkConfig: async (contractAddress: string) => {
+        const response = await fetch(`${this.config.node}/api/v1/zk-config/${contractAddress}`);
+        if (!response.ok) {
+          throw new Error(`Failed to fetch ZK config: ${response.statusText}`);
+        }
+        return await response.json();
+      },
+    } as any;
+
     const proofProvider = httpClientProofProvider(this.config.proofServer);
     const privateStateProvider = await levelPrivateStateProvider({
       privateStateStoreName: 'escrow-state'
