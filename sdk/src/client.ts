@@ -97,14 +97,44 @@ export class EscrowClient {
       this.config.indexerWS || this.config.indexer.replace('http', 'ws') + '/ws'
     );
 
-    // Browser-compatible ZK config provider (fetches via HTTP from RPC node)
+    // Browser-compatible ZK config provider
     const zkConfigProvider = {
-      getZkConfig: async (contractAddress: string) => {
-        const response = await fetch(`${this.config.node}/api/v1/zk-config/${contractAddress}`);
+      async getZKIR(circuitId: string) {
+        const response = await fetch(`/escrow-contract/zkir/${circuitId}.zkir`);
         if (!response.ok) {
-          throw new Error(`Failed to fetch ZK config: ${response.statusText}`);
+          throw new Error(`Failed to fetch ZKIR for ${circuitId}: ${response.statusText}`);
         }
-        return await response.json();
+        return new Uint8Array(await response.arrayBuffer());
+      },
+      async getProverKey(circuitId: string) {
+        const response = await fetch(`/escrow-contract/keys/${circuitId}.prover`);
+        if (!response.ok) {
+          throw new Error(`Failed to fetch prover key for ${circuitId}: ${response.statusText}`);
+        }
+        return new Uint8Array(await response.arrayBuffer());
+      },
+      async getVerifierKey(circuitId: string) {
+        const response = await fetch(`/escrow-contract/keys/${circuitId}.verifier`);
+        if (!response.ok) {
+          throw new Error(`Failed to fetch verifier key for ${circuitId}: ${response.statusText}`);
+        }
+        return new Uint8Array(await response.arrayBuffer());
+      },
+      async getVerifierKeys(circuitIds: string[]) {
+        return Promise.all(
+          circuitIds.map(async (id) => {
+            const vk = await this.getVerifierKey(id);
+            return [id, vk] as [string, Uint8Array];
+          })
+        );
+      },
+      async get(circuitId: string) {
+        const [zkir, proverKey, verifierKey] = await Promise.all([
+          this.getZKIR(circuitId),
+          this.getProverKey(circuitId),
+          this.getVerifierKey(circuitId),
+        ]);
+        return { circuitId, zkir, proverKey, verifierKey };
       },
     } as any;
 
