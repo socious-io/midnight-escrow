@@ -1,4 +1,4 @@
-import { WalletBuilder } from '@midnight-ntwrk/wallet';
+// WalletBuilder imported dynamically only when needed (for seed-based wallets)
 import { deployContract, findDeployedContract } from '@midnight-ntwrk/midnight-js-contracts';
 import { indexerPublicDataProvider } from '@midnight-ntwrk/midnight-js-indexer-public-data-provider';
 import { httpClientProofProvider, DEFAULT_CONFIG } from '@midnight-ntwrk/midnight-js-http-client-proof-provider';
@@ -49,7 +49,8 @@ export class EscrowClient {
    */
   async connect(walletConfig: WalletConfig): Promise<void> {
     if (walletConfig.type === 'seed') {
-      // Seed-based wallet (backend/CLI)
+      // Seed-based wallet (backend/CLI) - dynamically import to avoid loading in browser
+      const { WalletBuilder } = await import('@midnight-ntwrk/wallet');
       this.wallet = await WalletBuilder.buildFromSeed(
         this.config.indexer,
         this.config.indexerWS || this.config.indexer.replace('http', 'ws') + '/ws',
