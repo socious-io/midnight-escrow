@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Extension Injection</title>
+</head>
+<body>
+    <h1>Extension Injection Test</h1>
+    <div id="status"></div>
+    <script>
+        const statusDiv = document.getElementById('status');
+
+        function checkExtensions() {
+            const results = [];
+            results.push('window.midnight: ' + typeof window.midnight);
+            results.push('window.cardano: ' + typeof window.cardano);
+            results.push('window.web3: ' + typeof window.web3);
+            results.push('window.ethereum: ' + typeof window.ethereum);
+
+            if (window.midnight) {
+                results.push('window.midnight.mnLace: ' + typeof window.midnight.mnLace);
+            }
+
+            statusDiv.innerHTML = '<pre>' + results.join('\n') + '</pre>';
+        }
+
+        // Check immediately
+        checkExtensions();
+
+        // Check after 1 second (extensions might inject late)
+        setTimeout(function() {
+            console.log('Checking again after 1 second...');
+            checkExtensions();
+        }, 1000);
+
+        // Check after 3 seconds
+        setTimeout(function() {
+            console.log('Checking again after 3 seconds...');
+            checkExtensions();
+        }, 3000);
+    </script>
+</body>
+</html>
