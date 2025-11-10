@@ -15,6 +15,13 @@ export default defineConfig({
   define: {
     global: 'window', // Define global as window
   },
+  assetsInclude: [
+    '**/*.wasm',
+    '**/*.zkir',
+    '**/*.bzkir',
+    '**/*.prover',
+    '**/*.verifier'
+  ],
   server: {
     port: 3001, // Use 3001 (3000 might be taken by web-app-v2)
     headers: {

@@ -320,7 +320,7 @@ export class EscrowClient {
       // Parse contributor address
       const contributorPubKeyBytes = this.parseCoinPublicKey(params.contributorAddress);
       const contributorPubKey = { bytes: contributorPubKeyBytes };
-
+      console.log('--------------------------------- 1');
       // Get wallet state
       const state: any = this.walletType === 'seed'
         ? await Rx.firstValueFrom(this.wallet.state())
@@ -330,13 +330,14 @@ export class EscrowClient {
 
       // Check if wallet has availableCoins (seed wallet)
       if (state.availableCoins && state.availableCoins.length > 0) {
+        console.log('--------------------------------- 2');
         // Seed wallet - manually select coin
         const availableCoins = state.availableCoins;
         const nativeTokenType = nativeToken();
         const suitableCoin = availableCoins.find((coin: any) =>
           coin.value >= params.amount && coin.type === nativeTokenType
         );
-
+        console.log('--------------------------------- 3');
         if (!suitableCoin) {
           return {
             escrowId: 0,

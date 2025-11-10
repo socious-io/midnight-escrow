@@ -18,6 +18,7 @@ import crypto from 'crypto';
 import { Contract as EscrowContract, ledger as escrowLedger } from './contract/src/managed/escrow/contract/index.cjs';
 import { witnesses } from './contract/src/witnesses.js';
 
+
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 

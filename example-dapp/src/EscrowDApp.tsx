@@ -1,5 +1,10 @@
 import { useState } from 'react';
-import { EscrowClient } from 'midnight-escrow/sdk/src';
+import { Contract } from "@midnight-escrow/contract/escrow";
+import { witnesses } from "@midnight-escrow/contract";
+import { createProviders } from './provider';
+import { findDeployedContract } from '@midnight-ntwrk/midnight-js-contracts';
+import { connectToWallet } from './connectToWallet';
+import { DAppConnectorWalletAPI, DAppConnectorWalletState, ServiceUriConfig } from '@midnight-ntwrk/dapp-connector-api';
 
 // Get contract address from environment variable
 const CONTRACT_ADDRESS = import.meta.env.VITE_CONTRACT_ADDRESS;
@@ -17,12 +22,13 @@ const MIDNIGHT_CONFIG = {
   proofTimeout: 900000,
 };
 
+
 export default function EscrowDApp() {
   const [connected, setConnected] = useState(false);
-  const [walletAddress, setWalletAddress] = useState('');
-  const [balance, setBalance] = useState('0');
-  const [escrowClient, setEscrowClient] = useState<EscrowClient | null>(null);
-  const [lastEscrowId, setLastEscrowId] = useState(0);
+  const [wallet, setWallet] = useState<DAppConnectorWalletAPI>();
+  const [walletState, setWalletState] = useState<DAppConnectorWalletState>();
+  const [serviceUris, setServiceUris] = useState<ServiceUriConfig>();
+  const [joinedContract, setJoinedContract] = useState<Contract>();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -31,46 +37,63 @@ export default function EscrowDApp() {
   const [contributorAddress, setContributorAddress] = useState('');
   const [releaseEscrowId, setReleaseEscrowId] = useState('');
 
+  
+  const createCoin = async (amount: bigint) => {
+    const nonce = new Uint8Array(Buffer.from(suitableCoin.nonce, 'hex'));
+
+      // Convert type (TokenType = 35-byte hex) to color (Bytes<32>)
+      const typeBytes = Buffer.from(suitableCoin.type, 'hex');
+      const color = new Uint8Array(typeBytes.slice(2, 34)); // Skip 2-byte prefix, take 32 bytes
+
+      return {
+        nonce: nonce,
+        color: color,
+        value: amount,
+      };
+  }
   const connectWallet = async () => {
     setLoading(true);
     setError('');
 
     try {
-      console.log('[1/5] Checking for Midnight Lace wallet...');
-      const midnight = (window as any).midnight;
-      if (!midnight?.mnLace) {
-        throw new Error('Midnight Lace wallet not found. Please install Lace wallet extension.');
-      }
-      console.log('[1/5] ✅ Midnight Lace wallet found');
+      console.log('[1/5] Connecting to Midnight Lace wallet...');
+      const { wallet: laceAPI, uris } = await connectToWallet();
+      console.log('[1/5] ✅ Wallet connected, API and URIs obtained');
+      
+      setWallet(laceAPI);
+      setServiceUris(uris);
 
-      console.log('[2/5] Enabling wallet (requesting user permission)...');
-      const laceAPI = await midnight.mnLace.enable();
-      console.log('[2/5] ✅ Wallet enabled, API obtained');
-
-      console.log('[3/5] Getting wallet state...');
+      console.log('[2/5] Getting wallet state...');
       const state = await laceAPI.state();
-      setWalletAddress(state.address);
-      console.log('[3/5] ✅ Wallet shielded address:', state.address);
+      setWalletState(state);
+      console.log('[2/5] ✅ Wallet shielded address:', state.address);
 
-      console.log('[4/5] Creating EscrowClient with Lace wallet...');
-      const client = new EscrowClient(MIDNIGHT_CONFIG, CONTRACT_ADDRESS, '/escrow-contract');
-      await client.connect({ type: 'lace', laceAPI });
-      console.log('[4/5] ✅ EscrowClient connected');
-
-      console.log('[5/5] Getting wallet balance...');
-      const balanceInfo = await client.getBalance();
-      setBalance(balanceInfo.balance.toString());
-      console.log('[5/5] ✅ Balance:', balanceInfo.balance);
-
-      console.log('[5/5] Getting contract state...');
-      const escrowState = await client.getEscrowState();
-      setLastEscrowId(escrowState.lastEscrowId);
-      console.log('[5/5] ✅ Last escrow ID:', escrowState.lastEscrowId);
-
-      setEscrowClient(client);
       setConnected(true);
 
       console.log('✅✅✅ CONNECTION COMPLETE! ✅✅✅');
+
+      console.log('Joining escrow contract...');
+      const escrow = new Contract(witnesses);
+      const providers = await createProviders(laceAPI, state, serviceUris?.proverServerUri);
+      
+      console.log('Service URIs:', serviceUris);
+      console.log('Providers:', providers);
+
+      const privateStateId = state.address;
+      const initialPrivateState = await providers.privateStateProvider.get(privateStateId) || {};
+
+      console.log('Attempting to join contract with address:', CONTRACT_ADDRESS);
+      const joined = await findDeployedContract(providers, {
+        contractAddress: CONTRACT_ADDRESS,
+        contract: escrow,
+        privateStateId: privateStateId,
+        initialPrivateState: initialPrivateState,
+      });
+
+      console.log('Joined contract:', joined);
+
+      setJoinedContract(joined);
+
     } catch (err: any) {
       setError(err.message || 'Failed to connect wallet');
       console.error('Connection error:', err);
@@ -81,91 +104,46 @@ export default function EscrowDApp() {
 
   const handleCreateEscrow = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!escrowClient) return;
 
     setLoading(true);
     setError('');
+    if (wallet === undefined || walletState === undefined) {
+      throw new Error('Wallet is not connected');
+    }
+
+    if (!joinedContract) {
+      setError('Contract not joined');
+      setLoading(false);
+      return;
+    }
 
     try {
-      // Validate inputs
-      if (!dustAmount || !contributorAddress) {
-        throw new Error('DUST amount and contributor address are required');
-      }
-
-      const amount = BigInt(dustAmount);
-      if (amount <= 0n) {
-        throw new Error('DUST amount must be greater than 0');
-      }
-
-      console.log('Creating escrow with params:', {
+      const createResult = await joinedContract.callTx.create(
         contributorAddress,
-        amount: amount.toString(),
-      });
-
-      // Create escrow using new SDK
-      const result = await escrowClient.createEscrow({
-        contributorAddress,
-        amount,
-      });
-
-      if (!result.success) {
-        throw new Error(result9.error || 'Failed to create escrow');
-      }
-
-      alert(
-        `Escrow created successfully!\nEscrow ID: ${result.escrowId}\nProof time: ${result.proofTime.toFixed(2)}s`
+        createCoin(BigInt(dustAmount))
       );
+      console.log(`Contract escrow created result : ${createResult}`);
 
-      // Update state
-      const escrowState = await escrowClient.getEscrowState();
-      setLastEscrowId(escrowState.lastEscrowId);
-
-      const balanceInfo = await escrowClient.getBalance();
-      setBalance(balanceInfo.balance.toString());
-
-      // Clear form
-      setDustAmount('');
-      setContributorAddress('');
     } catch (err: any) {
-      setError(err.message || 'Failed to create escrow');
+      setError(err.message || 'An unknown error occurred');
       console.error('Create escrow error:', err);
     } finally {
       setLoading(false);
     }
   };
-
   const handleReleaseEscrow = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!escrowClient) return;
-
     setLoading(true);
     setError('');
-
+    if (!joinedContract) {
+      setError('Contract not joined');
+      setLoading(false);
+      return;
+    }
     try {
-      if (!releaseEscrowId) {
-        throw new Error('Escrow ID is required');
-      }
-
-      const escrowId = Number(releaseEscrowId);
-      if (isNaN(escrowId) || escrowId < 0) {
-        throw new Error('Invalid escrow ID');
-      }
-
-      console.log('Releasing escrow:', escrowId);
-
-      const result = await escrowClient.releaseEscrow({ escrowId });
-
-      if (!result.success) {
-        throw new Error(result.error || 'Failed to release escrow');
-      }
-
-      alert(`Escrow released successfully!\nEscrow ID: ${escrowId}\nProof time: ${result.proofTime.toFixed(2)}s`);
-
-      // Update state
-      const balanceInfo = await escrowClient.getBalance();
-      setBalance(balanceInfo.balance.toString());
-
-      // Clear form
+      const escrowId = BigInt(releaseEscrowId);
+      await joinedContract.callTx.release(escrowId);
+      alert(`Escrow released successfully! Escrow ID: ${escrowId}`);
       setReleaseEscrowId('');
     } catch (err: any) {
       setError(err.message || 'Failed to release escrow');
@@ -228,12 +206,14 @@ export default function EscrowDApp() {
             <div style={{ marginBottom: '10px' }}>
               <strong>Shielded Address:</strong>{' '}
               <span style={{ fontFamily: 'monospace', fontSize: '12px', wordBreak: 'break-all' }}>
-                {walletAddress}
+                {walletState?.address}
               </span>
               <button
                 onClick={() => {
-                  navigator.clipboard.writeText(walletAddress);
-                  alert('Shielded address copied to clipboard!');
+                  if (walletState?.address) {
+                    navigator.clipboard.writeText(walletState.address);
+                    alert('Shielded address copied to clipboard!');
+                  }
                 }}
                 style={{
                   marginLeft: '10px',

@@ -5,7 +5,14 @@
   "scripts": {
     "deploy": "tsx deploy.ts"
   },
+  "exports": {
+    ".": {
+      "import": "./contract/src/managed/escrow/contract/index.mjs",
+      "require": "./contract/src/managed/escrow/contract/index.cjs"
+    }
+  },
   "dependencies": {
+    "@meshsdk/midnight-setup": "^1.9.0-beta.86",
     "@midnight-ntwrk/compact-runtime": "^0.8.1",
     "@midnight-ntwrk/ledger": "^4.0.0",
     "@midnight-ntwrk/midnight-js-contracts": "2.0.2",
@@ -25,5 +32,10 @@
   "devDependencies": {
     "@types/node": "^20.0.0",
     "typescript": "^5.3.0"
-  }
+  },
+  "workspaces": [
+    "example-dapp",
+    "sdk",
+    "contract"
+  ]
 }

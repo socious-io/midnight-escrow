@@ -1,9 +1,23 @@
 {
-  "name": "escrow-contract",
+  "name": "@midnight-escrow/contract",
   "version": "1.0.0",
   "type": "module",
   "scripts": {
     "compact": "compactc src/escrow.compact src/managed/escrow"
+  },
+  "exports": {
+    "./escrow": {
+      "import": "./src/managed/escrow/contract/index.mjs",
+      "types": "./src/managed/escrow/contract/index.d.cts"
+    },
+    "./counter": {
+      "import": "./src/managed/counter/contract/index.cjs",
+      "types": "./src/managed/counter/contract/index.d.cts"
+    },
+    ".": {
+      "import": "./src/witnesses.js",
+      "types": "./src/witnesses.d.ts"
+    }
   },
   "dependencies": {
     "@midnight-ntwrk/compact-runtime": "^0.8.1"
